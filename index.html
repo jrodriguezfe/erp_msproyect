@@ -39,6 +39,7 @@
         <main class="content-view">
 
             <div class="toolbar">
+                    <button onclick="toggleSection('kanban-area')" class="btn-tool" style="background: #e67e22; color: white;">📋 Kanban</button>
                     <button onclick="toggleSidebar()" class="btn-tool" style="background: var(--primary); color: white;">☰ Menú</button>
                     <button onclick="toggleSection('dashboard-area')" class="btn-tool">📊 Alternar KPIs</button>
                     <button onclick="toggleSection('resource-summary-area')" class="btn-tool">👥 Alternar Recursos</button>
@@ -100,6 +101,25 @@
                     </div>
                 </div>
             </section>
+            <section class="kanban-area hidden">
+                <div class="kanban-board">
+                    <div class="kanban-column" id="col-todo" ondrop="drop(event, 0)" ondragover="allowDrop(event)">
+                        <h3>📌 Pendiente (0%)</h3>
+                        <div class="kanban-cards" id="cards-todo"></div>
+                    </div>
+                    <div class="kanban-column" id="col-inprogress" ondrop="drop(event, 50)" ondragover="allowDrop(event)">
+                        <h3>🚀 En Proceso (50%)</h3>
+                        <div class="kanban-cards" id="cards-inprogress"></div>
+                    </div>
+                    <div class="kanban-column" id="col-done" ondrop="drop(event, 100)" ondragover="allowDrop(event)">
+                        <h3>✅ Finalizado (100%)</h3>
+                        <div class="kanban-cards" id="cards-done"></div>
+                    </div>
+                </div>
+            </section>
+
+
+
         </main>
 
         <div id="details-panel" class="details-sidebar">

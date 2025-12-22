@@ -83,13 +83,18 @@ async function renderAll() {
                 else if (p > 0) inprog++; 
                 else todo++;
                 
-                // POBLAR SELECTORES (Correctamente dentro del bucle)
+                // POBLAR SELECTORES
                 const optHtml = `<option value="${task.id}">${task.name}</option>`;
                 if (predSelectNew) predSelectNew.innerHTML += optHtml;
                 if (predSelectDetail) predSelectDetail.innerHTML += optHtml;
             }
         });
 
+        // --- INTEGRACIÓN KANBAN ---
+        // Llamamos al renderizado del tablero Kanban con la data fresca
+        await renderKanban(activities); 
+
+        // 2. DIBUJAR BARRAS EN EL GANTT
         activities.forEach((task, i) => {
             const taskStart = new Date(task.start + "T00:00:00");
             const diffDays = Math.floor((taskStart - globalStart) / (1000 * 60 * 60 * 24));
@@ -113,8 +118,8 @@ async function renderAll() {
         await loadResources(); 
         await updateProjectCost();
     } catch (e) { console.error("Error crítico en renderAll:", e); }
+    
     await renderResourceSummary();
-
 }
 
 window.openDetails = (task) => {
@@ -482,5 +487,55 @@ window.toggleSidebar = () => {
     sidebar.classList.toggle('collapsed');
 };
 
+// --- LÓGICA KANBAN ---
+
+// Permitir soltar
+window.allowDrop = (ev) => ev.preventDefault();
+
+// Al empezar a arrastrar
+window.drag = (ev, id) => {
+    ev.dataTransfer.setData("taskId", id);
+};
+
+// Al soltar en una columna
+window.drop = async (ev, newProgress) => {
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData("taskId");
+    
+    try {
+        const taskRef = doc(db, "activities", id);
+        await updateDoc(taskRef, { progress: newProgress });
+        renderAll(); // Recarga todo para sincronizar Gantt y Kanban
+    } catch (e) { console.error("Error en Kanban:", e); }
+};
+
+// Modificar tu función renderAll para incluir el renderizado de tarjetas
+async function renderKanban(activities) {
+    const todoCont = document.getElementById('cards-todo');
+    const inprogCont = document.getElementById('cards-inprogress');
+    const doneCont = document.getElementById('cards-done');
+
+    if(!todoCont) return;
+
+    todoCont.innerHTML = ''; inprogCont.innerHTML = ''; doneCont.innerHTML = '';
+
+    activities.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'kanban-card';
+        card.draggable = true;
+        card.ondragstart = (e) => drag(e, task.id);
+        card.onclick = () => window.openDetails(task); // También abre detalles desde el Kanban
+        
+        card.innerHTML = `
+            <h4>${task.name}</h4>
+            <p>📅 Fin: ${calculateEndDate(task.start, task.duration)}</p>
+            <p>👤 ${task.assignedResource || 'Sin asignar'}</p>
+        `;
+
+        if(task.progress == 0) todoCont.appendChild(card);
+        else if(task.progress == 100) doneCont.appendChild(card);
+        else inprogCont.appendChild(card);
+    });
+}
 
 renderAll();

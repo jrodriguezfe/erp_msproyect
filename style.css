@@ -354,3 +354,53 @@ td { padding: 10px; border-bottom: 1px solid #eee; }
     transition: all 0.4s ease;
 }
 
+.kanban-area { padding: 20px; flex: 1; overflow-y: auto; background: #ebedf0; }
+
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    align-items: flex-start;
+}
+
+.kanban-column {
+    flex: 1;
+    background: #ebedf0;
+    border-radius: 8px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d9e0;
+}
+
+.kanban-column h3 {
+    padding: 15px;
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+    text-align: center;
+    background: #fff;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid var(--primary);
+}
+
+.kanban-cards {
+    padding: 10px;
+    flex: 1;
+}
+
+.kanban-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: grab;
+    border-left: 5px solid var(--primary);
+    transition: transform 0.2s;
+}
+
+.kanban-card:active { cursor: grabbing; transform: scale(1.05); }
+
+.kanban-card h4 { margin: 0 0 5px 0; font-size: 0.9rem; }
+.kanban-card p { margin: 0; font-size: 0.8rem; color: #666; }
