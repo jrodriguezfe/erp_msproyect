@@ -554,4 +554,51 @@ async function renderKanban(activities) {
     });
 }
 
+document.getElementById('excel-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Leer la primera hoja
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Convertir a JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) return alert("El archivo está vacío");
+
+        try {
+            const batchPromises = jsonData.map(row => {
+                // Validar datos mínimos
+                if (!row.name || !row.start || !row.duration) return null;
+
+                return addDoc(collection(db, "activities"), {
+                    name: String(row.name),
+                    start: String(row.start), // Debe venir como YYYY-MM-DD
+                    duration: Number(row.duration),
+                    priority: row.priority || "Media",
+                    sprint: Number(row.sprint) || 1,
+                    progress: Number(row.progress) || 0,
+                    predecessorId: "", // Las dependencias se asignan manualmente luego
+                    assignedResource: "" // Los recursos se asignan manualmente luego
+                });
+            });
+
+            await Promise.all(batchPromises.filter(p => p !== null));
+            alert(`¡Éxito! Se han importado ${jsonData.length} actividades.`);
+            renderAll(); // Refresca Gantt, Kanban y KPIs
+        } catch (error) {
+            console.error("Error al importar:", error);
+            alert("Hubo un error al subir los datos. Revisa el formato.");
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+
 renderAll();

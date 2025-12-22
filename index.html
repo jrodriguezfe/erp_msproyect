@@ -43,6 +43,20 @@
                     Registrar Miembro del Equipo
                 </button>
             </div>
+
+
+            <div class="admin-form" style="border-top: 2px solid #eee; padding-top: 15px; margin-top: 20px;">
+                <h4 style="color: #27ae60;">📤 Importación Masiva</h4>
+                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">
+                    Sube tu cronograma desde Excel (Columnas: name, start, duration, priority, sprint, progress).
+                </p>
+                
+                <input type="file" id="excel-upload" accept=".xlsx, .xls" style="font-size: 0.8rem; width: 100%;">
+                
+                <div id="import-status" style="font-size: 0.75rem; margin-top: 5px; color: var(--primary);"></div>
+            </div>
+
+
             
             <div id="work-packages-list" class="task-list-view"></div>
         </aside>

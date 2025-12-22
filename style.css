@@ -507,3 +507,16 @@ td { padding: 10px; border-bottom: 1px solid #eee; }
     margin-top: 10px;
     padding-top: 5px;
 }
+
+#excel-upload {
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#excel-upload:hover {
+    background: #eef5f9;
+    border-color: var(--primary);
+}
