@@ -10,8 +10,8 @@
 </head>
 <body>
     <div class="main-layout">
-        <aside class="sidebar-tasks">
-            <div class="brand">CTTC ERP 2026</div>
+        <aside class="sidebar-tasks" id="sidebar-left">
+            <div class="brand">CTTC ERP-MS PROYECT 2026</div>
             
             <div class="admin-form">
                 <h4>Nueva Actividad</h4>
@@ -39,6 +39,7 @@
         <main class="content-view">
 
             <div class="toolbar">
+                    <button onclick="toggleSidebar()" class="btn-tool" style="background: var(--primary); color: white;">☰ Menú</button>
                     <button onclick="toggleSection('dashboard-area')" class="btn-tool">📊 Alternar KPIs</button>
                     <button onclick="toggleSection('resource-summary-area')" class="btn-tool">👥 Alternar Recursos</button>
                     

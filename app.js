@@ -476,4 +476,11 @@ slider.addEventListener('mousemove', (e) => {
     slider.scrollLeft = scrollLeft - walk;
 });
 
+
+window.toggleSidebar = () => {
+    const sidebar = document.getElementById('sidebar-left');
+    sidebar.classList.toggle('collapsed');
+};
+
+
 renderAll();
