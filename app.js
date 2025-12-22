@@ -93,13 +93,14 @@ async function renderAll() {
         activities.forEach((task, i) => {
             const taskStart = new Date(task.start + "T00:00:00");
             const diffDays = Math.floor((taskStart - globalStart) / (1000 * 60 * 60 * 24));
+            const dateEnd = calculateEndDate(task.start, task.duration);
             
             const bar = document.createElement('div');
             bar.className = 'gantt-bar';
             bar.style.left = `${diffDays * 40}px`; 
             bar.style.width = `${(Number(task.duration) || 1) * 40}px`;
             bar.style.top = `${i * 45 + 10}px`; 
-            bar.innerText = `${task.name} (${task.progress || 0}%)`;
+            bar.innerText = `${task.name} [${task.start} al ${dateEnd}] (${task.progress || 0}%)`;
             bar.onclick = () => window.openDetails(task);
             barsContainer.appendChild(bar);
         });
@@ -128,6 +129,12 @@ window.openDetails = (task) => {
     document.getElementById('detail-duration').value = task.duration || 1;
     document.getElementById('prog-val').innerText = task.progress || 0;
     document.getElementById('detail-progress').value = task.progress || 0;
+
+    document.getElementById('detail-start').value = task.start || "";
+    document.getElementById('detail-duration').value = task.duration || 1;
+
+    const dateEnd = calculateEndDate(task.start, task.duration);
+    document.getElementById('detail-end').value = dateEnd;
     
     const detailPredSelect = document.getElementById('detail-predecessor');
     if (detailPredSelect) {
@@ -368,6 +375,61 @@ window.editResource = async (resId, currentName, currentRate) => {
             alert("Recurso actualizado");
             renderAll();
         } catch (e) { console.error("Error al editar recurso:", e); }
+    }
+};
+
+function calculateEndDate(startDateStr, durationDays) {
+    if (!startDateStr || !durationDays) return "-";
+    const date = new Date(startDateStr + "T00:00:00");
+    // Restamos 1 porque si empieza el día 1 y dura 1 día, termina el día 1
+    date.setDate(date.getDate() + (Number(durationDays) - 1));
+    return date.toISOString().split('T')[0];
+}
+
+document.getElementById('btn-export-excel').onclick = async () => {
+    try {
+        // 1. Obtener datos de Firebase
+        const activitiesSnap = await getDocs(collection(db, "activities"));
+        const resourcesSnap = await getDocs(collection(db, "resources"));
+
+        // 2. Mapear nombres de recursos para el Excel
+        let resMap = {};
+        resourcesSnap.forEach(d => { resMap[d.id] = d.data().name; });
+
+        // 3. Preparar datos de Actividades
+        const activitiesData = [];
+        activitiesSnap.forEach(d => {
+            const t = d.data();
+            activitiesData.push({
+                "Actividad": t.name,
+                "Inicio": t.start,
+                "Duración (Días)": t.duration,
+                "Fin": calculateEndDate(t.start, t.duration),
+                "Progreso (%)": t.progress,
+                "Recurso Asignado": resMap[t.assignedResource] || "Sin asignar",
+                "Horas (HH)": t.estimatedHours || 0
+            });
+        });
+
+        // 4. Crear el Libro de Excel (Workbook)
+        const wb = XLSX.utils.book_new();
+        
+        // Hoja 1: Cronograma
+        const wsActivities = XLSX.utils.json_to_sheet(activitiesData);
+        XLSX.utils.book_append_sheet(wb, wsActivities, "Cronograma_Gantt");
+
+        // Hoja 2: Resumen de Recursos (Opcional, usando los datos de la tabla)
+        const table = document.getElementById("resource-table-body").parentElement;
+        const wsResources = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, wsResources, "Resumen_Costos");
+
+        // 5. Descargar el archivo
+        XLSX.writeFile(wb, "Reporte_ERP_CTTC_2026.xlsx");
+        alert("¡Excel generado con éxito!");
+
+    } catch (e) {
+        console.error("Error al exportar:", e);
+        alert("Error al generar el archivo Excel");
     }
 };
 
