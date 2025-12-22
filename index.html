@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP PROYECT CTTC - Gestión de Ingeniería</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="main-layout">
+        <aside class="sidebar-tasks">
+            <div class="brand">CTTC ERP 2026</div>
+            
+            <div class="admin-form">
+                <h4>Nueva Actividad</h4>
+                <input type="text" id="task-name" placeholder="Nombre de Tarea">
+                <input type="date" id="task-start">
+                <input type="number" id="task-duration" placeholder="Duración (Días)">
+                <select id="predecessor-select">
+                    <option value="">Sin predecesor</option>
+                </select>
+                <button id="btn-save-task" class="btn-main">Añadir Actividad</button>
+            </div>
+
+            <div class="admin-form">
+                <h4>Configurar Recursos (HH)</h4>
+                <input type="text" id="res-name-new" placeholder="Nombre del Rol/Persona">
+                <input type="number" id="res-rate-new" placeholder="Tasa Horaria (S/.)">
+                <button id="btn-save-resource" class="btn-main" style="background-color: #8e44ad;">
+                    Registrar Recurso
+                </button>
+            </div>
+            
+            <div id="work-packages-list" class="task-list-view"></div>
+        </aside>
+
+        <main class="content-view">
+            <section class="dashboard-area">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <span>Avance del Proyecto</span>
+                        <div id="kpi-prog" class="kpi-val">0%</div>
+                    </div>
+                    <div class="kpi-card">
+                        <span>Costo Real (S/.)</span>
+                        <div id="kpi-cost" class="kpi-val">0.00</div>
+                    </div>
+                    <div class="kpi-card chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="resource-summary-area" style="padding: 20px; background: white; margin: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h4 style="margin-bottom: 15px; color: #2c3e50;">📊 Resumen de Carga de Trabajo y Costos</h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; text-align: left;">
+                                <th style="padding: 10px;">Recurso / Rol</th>
+                                <th style="padding: 10px;">Tasa (S/.)</th>
+                                <th style="padding: 10px;">Actividades</th>
+                                <th style="padding: 10px;">Total HH / Costo</th>
+                                <th style="padding: 10px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resource-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="gantt-area">
+                <div class="gantt-wrapper">
+                    <div id="gantt-header" class="gantt-header"></div>
+                    
+                    <div class="gantt-container" id="gantt-container">
+                        <div id="gantt-bars-container"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="details-panel" class="details-sidebar">
+            <div class="panel-header">
+                <h3 id="detail-title">Detalles de Tarea</h3>
+                <button onclick="window.togglePanel(false)">×</button>
+            </div>
+            
+            <div class="panel-content">
+
+                <div class="section">
+                    <h4>Datos Generales</h4>
+                    <label>Nombre de la Actividad:</label>
+                    <input type="text" id="detail-name" placeholder="Nombre de la tarea">
+                </div>
+
+
+                <div class="section">
+                    <h4>Programación</h4>
+                    <label>Fecha de Inicio:</label>
+                    <input type="date" id="detail-start">
+                    
+                    <label>Duración (Días):</label>
+                    <input type="number" id="detail-duration" min="1">
+                </div>
+
+                <hr>
+
+                <div class="section">
+                    <h4>Dependencias</h4>
+                    <label for="detail-predecessor">Actividad Predecesora:</label>
+                    <select id="detail-predecessor">
+                        <option value="">Sin predecesor</option>
+                        </select>
+                </div>
+
+                <hr>
+
+                <div class="section">
+                    <label>Progreso: <span id="prog-val">0</span>%</label>
+                    <input type="range" id="detail-progress" min="0" max="100">
+                </div>
+
+                <hr>
+
+                <div class="section">
+                    <h4>Recurso Humano</h4>
+                    <select id="res-select">
+                        <option value="">-- Seleccionar Recurso --</option>
+                        </select>
+                    <input type="number" id="res-hours" placeholder="Horas asignadas">
+                    <p class="info-text">El costo real se calcula según la tasa del recurso seleccionado.</p>
+                </div>
+
+                <div class="section-actions">
+                    <button id="btn-update-task" class="btn-main-update" style="background:#27ae60; color:white; width:100%; padding:12px; border:none; border-radius:4px; cursor:pointer;">
+                        💾 Guardar Cambios
+                    </button>
+                    <button onclick="window.deleteTask()" class="btn-delete" style="width:100%; margin-top:10px; background:none; border:1px solid #e74c3c; color:#e74c3c; padding:8px; cursor:pointer;">
+                        Eliminar Actividad
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

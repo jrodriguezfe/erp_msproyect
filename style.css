@@ -1,0 +1,264 @@
+:root {
+    --primary: #1a67a3;
+    --bg-gray: #f4f7f9;
+    --border: #d1d9e0;
+    --day-width: 40px; /* 1 día = 40px */
+}
+
+body { 
+    margin: 0; 
+    font-family: 'Segoe UI', sans-serif; 
+    height: 100vh; 
+    background: var(--bg-gray); 
+    overflow: hidden; 
+}
+
+.main-layout { 
+    display: grid; 
+    grid-template-columns: 350px 1fr; 
+    height: 100vh; 
+}
+
+/* --- SIDEBAR IZQUIERDO --- */
+.sidebar-tasks { 
+    background: #fff; 
+    padding: 20px; 
+    border-right: 1px solid var(--border); 
+    overflow-y: auto; 
+    z-index: 10; 
+}
+
+.brand { 
+    font-size: 1.5rem; 
+    color: var(--primary); 
+    font-weight: bold; 
+    margin-bottom: 20px; 
+    border-bottom: 2px solid var(--primary); 
+}
+
+.admin-form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    margin-bottom: 30px; 
+}
+
+.admin-form input, select { 
+    padding: 10px; 
+    border: 1px solid var(--border); 
+    border-radius: 4px; 
+}
+
+.btn-main { 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    padding: 12px; 
+    cursor: pointer; 
+    border-radius: 4px; 
+    font-weight: bold; 
+}
+
+/* --- DASHBOARD SUPERIOR (KPIs) --- */
+.dashboard-area { 
+    padding: 20px; 
+    background: #fff; 
+    border-bottom: 1px solid var(--border); 
+}
+
+.kpi-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1.5fr; 
+    gap: 15px; 
+    align-items: center; 
+}
+
+.kpi-card { 
+    background: #fff; 
+    padding: 15px; 
+    border-radius: 8px; 
+    border: 1px solid #eee; 
+    text-align: center; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+}
+
+.kpi-val { 
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    color: var(--primary); 
+    margin-top: 5px; 
+}
+
+.chart-container { 
+    height: 100px; 
+}
+
+/* --- AREA DEL GANTT Y PARRILLA --- */
+.content-view { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    overflow: hidden; 
+}
+
+.gantt-area { 
+    flex: 1; 
+    overflow: auto; 
+    padding: 0; /* Eliminamos padding para que la cabecera pegue a los bordes */
+    background: white; 
+}
+
+.gantt-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow-x: auto;
+    background: white;
+}
+
+/* Cabecera independiente de fechas */
+.gantt-header {
+    display: flex;
+    height: 60px;
+    border-bottom: 2px solid var(--border);
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-day {
+    min-width: var(--day-width);
+    max-width: var(--day-width);
+    height: 100%;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #666;
+}
+
+.header-day b { 
+    color: var(--primary); 
+    font-size: 12px; 
+}
+
+/* Contenedor de las barras y cuadrícula */
+.gantt-container {
+    position: relative;
+    min-width: 4800px; /* Suficiente para los 120 días generados en JS */
+    height: 1000px;
+    background-image: 
+        linear-gradient(to right, #ececec 1px, transparent 1px),
+        linear-gradient(to bottom, #ececec 1px, transparent 1px);
+    background-size: var(--day-width) 100%, 100% 45px; /* Sincronizado con JS y cabecera */
+}
+
+.gantt-bar { 
+    position: absolute; 
+    height: 32px; 
+    background: var(--primary); 
+    border-radius: 4px; 
+    color: white; 
+    display: flex; 
+    align-items: center; 
+    padding: 0 10px; 
+    cursor: pointer; 
+    font-size: 11px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    transition: 0.2s; 
+    white-space: nowrap; 
+    z-index: 5;
+}
+
+.gantt-bar:hover { 
+    filter: brightness(1.2); 
+    z-index: 100; 
+}
+
+/* --- PANEL LATERAL DE DETALLES --- */
+.details-sidebar { 
+    position: fixed; 
+    right: -420px; 
+    top: 0; 
+    width: 400px; 
+    height: 100%; 
+    background: white; 
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
+    transition: 0.3s ease; 
+    z-index: 1000; 
+    padding: 20px; 
+    color: #333;
+}
+
+.details-sidebar.active { 
+    right: 0; 
+}
+
+.panel-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: var(--primary); 
+    color: white; 
+    padding: 20px; 
+    margin: -20px -20px 20px -20px; 
+}
+
+.panel-header button { 
+    background: none; 
+    border: none; 
+    color: white; 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+}
+
+.panel-content .section {
+    margin-bottom: 20px;
+}
+
+.panel-content label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.panel-content input, .panel-content select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.info-text {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+.btn-main-update {
+    background: #27ae60;
+    color: white;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-delete {
+    background: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
