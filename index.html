@@ -14,22 +14,33 @@
             <div class="brand">CTTC ERP-MS PROYECT 2026</div>
             
             <div class="admin-form">
-                <h4>Nueva Actividad</h4>
-                <input type="text" id="task-name" placeholder="Nombre de Tarea">
+                <h4>🚀 Sprint Backlog (Scrum)</h4>
+                <input type="text" id="task-name" placeholder="User Story / Tarea">
+                
+                <select id="task-priority">
+                    <option value="Baja">Prioridad: Baja</option>
+                    <option value="Media" selected>Prioridad: Media</option>
+                    <option value="Alta">Prioridad: Alta</option>
+                </select>
+
+                <input type="number" id="task-sprint" placeholder="Número de Sprint (Ej: 1)" min="1" value="1">
+                
                 <input type="date" id="task-start">
                 <input type="number" id="task-duration" placeholder="Duración (Días)">
+                
                 <select id="predecessor-select">
                     <option value="">Sin predecesor</option>
                 </select>
-                <button id="btn-save-task" class="btn-main">Añadir Actividad</button>
+                
+                <button id="btn-save-task" class="btn-main">Planificar Sprint</button>
             </div>
 
             <div class="admin-form">
-                <h4>Configurar Recursos (HH)</h4>
+                <h4>👥 Configurar Scrum Team</h4>
                 <input type="text" id="res-name-new" placeholder="Nombre del Rol/Persona">
                 <input type="number" id="res-rate-new" placeholder="Tasa Horaria (S/.)">
                 <button id="btn-save-resource" class="btn-main" style="background-color: #8e44ad;">
-                    Registrar Recurso
+                    Registrar Miembro del Equipo
                 </button>
             </div>
             

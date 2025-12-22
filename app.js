@@ -514,26 +514,42 @@ async function renderKanban(activities) {
     const todoCont = document.getElementById('cards-todo');
     const inprogCont = document.getElementById('cards-inprogress');
     const doneCont = document.getElementById('cards-done');
+    if (!todoCont) return;
 
-    if(!todoCont) return;
+    // 1. Obtener los nombres de los recursos primero para el mapeo
+    const resSnap = await getDocs(collection(db, "resources"));
+    let resourceNames = {};
+    resSnap.forEach(d => {
+        resourceNames[d.id] = d.data().name; // Guardamos ID -> Nombre
+    });
 
     todoCont.innerHTML = ''; inprogCont.innerHTML = ''; doneCont.innerHTML = '';
 
     activities.forEach(task => {
         const card = document.createElement('div');
-        card.className = 'kanban-card';
+        // Aplicar clase de prioridad Scrum
+        const priorityClass = `card-priority-${(task.priority || 'media').toLowerCase()}`;
+        card.className = `kanban-card ${priorityClass}`;
         card.draggable = true;
-        card.ondragstart = (e) => drag(e, task.id);
-        card.onclick = () => window.openDetails(task); // También abre detalles desde el Kanban
+        card.ondragstart = (e) => window.drag(e, task.id);
+        card.onclick = () => window.openDetails(task);
         
+        // 2. Obtener el nombre real o mostrar "Sin asignar"
+        const nombreRecurso = resourceNames[task.assignedResource] || "Sin asignar";
+        const fechaFin = calculateEndDate(task.start, task.duration);
+
         card.innerHTML = `
+            <span class="sprint-badge">Sprint ${task.sprint || 1}</span>
             <h4>${task.name}</h4>
-            <p>📅 Fin: ${calculateEndDate(task.start, task.duration)}</p>
-            <p>👤 ${task.assignedResource || 'Sin asignar'}</p>
+            <div class="card-footer">
+                <p>📅 Fin: ${fechaFin}</p>
+                <p class="resource-tag">👤 ${nombreRecurso}</p>
+            </div>
         `;
 
-        if(task.progress == 0) todoCont.appendChild(card);
-        else if(task.progress == 100) doneCont.appendChild(card);
+        // Clasificar según progreso
+        if (Number(task.progress) === 0) todoCont.appendChild(card);
+        else if (Number(task.progress) === 100) doneCont.appendChild(card);
         else inprogCont.appendChild(card);
     });
 }
