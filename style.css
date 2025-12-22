@@ -1,76 +1,113 @@
+/* --- VARIABLES Y CONFIGURACIÓN GLOBAL --- */
 :root {
     --primary: #1a67a3;
+    --primary-dark: #145486;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --warning: #f1c40f;
     --bg-gray: #f4f7f9;
     --border: #d1d9e0;
-    --day-width: 40px; /* 1 día = 40px */
+    --day-width: 40px; /* Sincronizado con JS */
 }
 
 body { 
     margin: 0; 
-    font-family: 'Segoe UI', sans-serif; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     height: 100vh; 
     background: var(--bg-gray); 
     overflow: hidden; 
 }
 
+/* --- LAYOUT PRINCIPAL (RESPONSIVE) --- */
 .main-layout { 
-    display: grid; 
-    grid-template-columns: 350px 1fr; 
+    display: flex; 
     height: 100vh; 
+    width: 100vw;
 }
 
-/* --- SIDEBAR IZQUIERDO --- */
+/* Sidebar Izquierdo */
 .sidebar-tasks { 
+    width: 350px;
+    min-width: 350px;
     background: #fff; 
     padding: 20px; 
     border-right: 1px solid var(--border); 
     overflow-y: auto; 
-    z-index: 10; 
+    display: flex;
+    flex-direction: column;
 }
 
+/* Contenedor Derecho Principal */
+.content-view { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow-y: auto; 
+    transition: all 0.3s ease; /* Para animar el ocultar/mostrar */
+}
+
+/* --- COMPONENTES DE INTERFAZ --- */
 .brand { 
-    font-size: 1.5rem; 
+    font-size: 1.4rem; 
     color: var(--primary); 
     font-weight: bold; 
     margin-bottom: 20px; 
+    padding-bottom: 10px;
     border-bottom: 2px solid var(--primary); 
 }
 
-.admin-form { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    margin-bottom: 30px; 
+.toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 20;
 }
 
-.admin-form input, select { 
-    padding: 10px; 
-    border: 1px solid var(--border); 
-    border-radius: 4px; 
+.btn-tool {
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: 0.2s;
 }
 
-.btn-main { 
-    background: var(--primary); 
-    color: white; 
-    border: none; 
-    padding: 12px; 
-    cursor: pointer; 
-    border-radius: 4px; 
-    font-weight: bold; 
+.btn-tool:hover { background: #e9ecef; border-color: var(--primary); }
+
+.gantt-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* --- DASHBOARD SUPERIOR (KPIs) --- */
-.dashboard-area { 
-    padding: 20px; 
-    background: #fff; 
-    border-bottom: 1px solid var(--border); 
+.btn-nav {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
 }
+
+.hidden { display: none !important; }
+
+/* --- DASHBOARD Y KPIs --- */
+.dashboard-area { padding: 20px; background: #fff; border-bottom: 1px solid var(--border); }
 
 .kpi-grid { 
     display: grid; 
     grid-template-columns: 1fr 1fr 1.5fr; 
     gap: 15px; 
-    align-items: center; 
 }
 
 .kpi-card { 
@@ -82,45 +119,44 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
 }
 
-.kpi-val { 
-    font-size: 1.8rem; 
-    font-weight: bold; 
-    color: var(--primary); 
-    margin-top: 5px; 
+.kpi-val { font-size: 1.6rem; font-weight: bold; color: var(--primary); }
+
+/* --- TABLA DE RECURSOS --- */
+.resource-summary-area {
+    padding: 20px;
+    background: white;
+    margin: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
 }
 
-.chart-container { 
-    height: 100px; 
-}
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid var(--border); }
+td { padding: 10px; border-bottom: 1px solid #eee; }
 
-/* --- AREA DEL GANTT Y PARRILLA --- */
-.content-view { 
-    display: flex; 
-    flex-direction: column; 
-    height: 100vh; 
-    overflow: hidden; 
-}
-
+/* --- MOTOR DEL GANTT (SCROLLABLE) --- */
 .gantt-area { 
     flex: 1; 
-    overflow: auto; 
-    padding: 0; /* Eliminamos padding para que la cabecera pegue a los bordes */
     background: white; 
+    overflow: hidden; /* El scroll lo maneja el wrapper */
 }
 
 .gantt-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    cursor: grab;
     display: flex;
     flex-direction: column;
-    overflow-x: auto;
-    background: white;
 }
 
-/* Cabecera independiente de fechas */
+.gantt-wrapper:active { cursor: grabbing; }
+
 .gantt-header {
     display: flex;
     height: 60px;
-    border-bottom: 2px solid var(--border);
     background: #f8f9fa;
+    border-bottom: 2px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -128,31 +164,22 @@ body {
 
 .header-day {
     min-width: var(--day-width);
-    max-width: var(--day-width);
-    height: 100%;
-    border-right: 1px solid #e0e0e0;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-size: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    font-size: 10px;
-    color: #666;
 }
 
-.header-day b { 
-    color: var(--primary); 
-    font-size: 12px; 
-}
-
-/* Contenedor de las barras y cuadrícula */
 .gantt-container {
     position: relative;
-    min-width: 4800px; /* Suficiente para los 120 días generados en JS */
-    height: 1000px;
+    min-width: 4800px; /* 120 días * 40px */
+    height: 2000px; /* Espacio para muchas filas */
     background-image: 
-        linear-gradient(to right, #ececec 1px, transparent 1px),
-        linear-gradient(to bottom, #ececec 1px, transparent 1px);
-    background-size: var(--day-width) 100%, 100% 45px; /* Sincronizado con JS y cabecera */
+        linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+        linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+    background-size: var(--day-width) 100%, 100% 45px;
 }
 
 .gantt-bar { 
@@ -163,102 +190,138 @@ body {
     color: white; 
     display: flex; 
     align-items: center; 
-    padding: 0 10px; 
+    padding: 0 12px; 
     cursor: pointer; 
     font-size: 11px; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-    transition: 0.2s; 
     white-space: nowrap; 
-    z-index: 5;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
 }
 
-.gantt-bar:hover { 
-    filter: brightness(1.2); 
-    z-index: 100; 
-}
+.gantt-bar:hover { transform: scale(1.02); filter: brightness(1.1); z-index: 50; }
 
-/* --- PANEL LATERAL DE DETALLES --- */
+/* --- PANEL DE DETALLES (SIDEBAR DERECHO) --- */
+/* --- PANEL DE DETALLES MEJORADO --- */
 .details-sidebar { 
     position: fixed; 
-    right: -420px; 
+    right: -450px; /* Oculto por defecto */
     top: 0; 
-    width: 400px; 
-    height: 100%; 
+    width: 420px; 
+    max-width: 90vw; /* Responsive: no ocupa más del ancho de pantalla en móviles */
+    height: 100vh; 
     background: white; 
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
-    transition: 0.3s ease; 
-    z-index: 1000; 
-    padding: 20px; 
-    color: #333;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15); 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+    z-index: 2000; 
+    display: flex;
+    flex-direction: column; /* Para fijar el header y hacer scroll en el contenido */
 }
 
 .details-sidebar.active { 
     right: 0; 
 }
 
+/* Cabecera Fija del Panel */
 .panel-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
     background: var(--primary); 
     color: white; 
     padding: 20px; 
-    margin: -20px -20px 20px -20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.panel-header button { 
-    background: none; 
-    border: none; 
-    color: white; 
-    font-size: 1.5rem; 
-    cursor: pointer; 
+.panel-header h3 { margin: 0; font-size: 1.2rem; }
+
+/* Contenido con Scroll Independiente */
+.panel-content {
+    flex: 1;
+    overflow-y: auto; /* AQUÍ ESTÁ LA BARRA DESPLAZADORA */
+    padding: 25px;
+    background: #fff;
 }
 
+/* Estilización de las secciones internas */
 .panel-content .section {
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
     margin-bottom: 20px;
 }
 
-.panel-content label {
-    display: block;
-    font-weight: bold;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
+.panel-content h4 {
+    margin: 0 0 15px 0;
+    color: var(--primary);
+    font-size: 0.95rem;
+    border-left: 4px solid var(--primary);
+    padding-left: 10px;
 }
 
-.panel-content input, .panel-content select {
+/* Estilo de Inputs dentro del panel */
+.panel-content label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.panel-content input, 
+.panel-content select {
     width: 100%;
-    padding: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.panel-content input:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* Acciones al fondo */
+.section-actions {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Personalización de la barra de scroll (opcional) */
+.panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+.panel-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+/* --- FORMULARIOS --- */
+.admin-form input, .admin-form select, .panel-content input, .panel-content select {
+    padding: 10px;
     border: 1px solid var(--border);
     border-radius: 4px;
+    margin-bottom: 10px;
+    width: 100%;
     box-sizing: border-box;
 }
 
-.info-text {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 5px;
+.btn-main { 
+    background: var(--primary); color: white; border: none; padding: 12px; 
+    cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%;
 }
 
-.btn-main-update {
-    background: #27ae60;
-    color: white;
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-}
+.btn-main:hover { background: var(--primary-dark); }
 
-.btn-delete {
-    background: transparent;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
-    width: 100%;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-weight: bold;
+/* --- ADAPTACIÓN MÓVIL --- */
+@media (max-width: 900px) {
+    .main-layout { flex-direction: column; }
+    .sidebar-tasks { width: 100%; height: auto; min-width: 0; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .details-sidebar { width: 100%; right: -100%; }
 }

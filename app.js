@@ -433,5 +433,47 @@ document.getElementById('btn-export-excel').onclick = async () => {
     }
 };
 
+// --- INTERACTIVIDAD DE LA INTERFAZ ---
+
+// 1. Ocultar/Mostrar secciones (KPIs y Tabla)
+window.toggleSection = (className) => {
+    const element = document.querySelector(`.${className}`);
+    if (element) element.classList.toggle('hidden');
+};
+
+// 2. Desplazamiento por botones
+window.scrollGantt = (pixels) => {
+    const wrapper = document.querySelector('.gantt-wrapper');
+    wrapper.scrollBy({ left: pixels, behavior: 'smooth' });
+};
+
+// 3. Arrastre con el mouse (Drag to Scroll)
+const slider = document.querySelector('.gantt-wrapper');
+let isDown = false;
+let startX;
+let scrollLeft;
+
+slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slider.classList.add('active');
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+});
+
+slider.addEventListener('mouseleave', () => {
+    isDown = false;
+});
+
+slider.addEventListener('mouseup', () => {
+    isDown = false;
+});
+
+slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 2; // Velocidad de desplazamiento
+    slider.scrollLeft = scrollLeft - walk;
+});
 
 renderAll();

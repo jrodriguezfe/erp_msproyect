@@ -37,6 +37,18 @@
         </aside>
 
         <main class="content-view">
+
+            <div class="toolbar">
+                    <button onclick="toggleSection('dashboard-area')" class="btn-tool">📊 Alternar KPIs</button>
+                    <button onclick="toggleSection('resource-summary-area')" class="btn-tool">👥 Alternar Recursos</button>
+                    
+                    <div class="gantt-controls">
+                        <button onclick="scrollGantt(-400)" class="btn-nav">◀</button>
+                        <span class="nav-label">Desplazar Cronograma</span>
+                        <button onclick="scrollGantt(400)" class="btn-nav">▶</button>
+                    </div>
+            </div>
+
             <section class="dashboard-area">
                 <div class="kpi-grid">
                     <div class="kpi-card">
