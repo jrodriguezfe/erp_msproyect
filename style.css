@@ -25,7 +25,7 @@ body {
     width: 100vw;
 }
 
-/* Sidebar Izquierdo */
+/* --- SIDEBAR IZQUIERDO CORREGIDO --- */
 .sidebar-tasks { 
     width: 350px;
     min-width: 350px;
@@ -33,18 +33,33 @@ body {
     padding: 20px; 
     border-right: 1px solid var(--border); 
     overflow-y: auto; 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    position: relative; /* Para asegurar el orden de apilamiento */
 }
 
-/* Contenedor Derecho Principal */
-.content-view { 
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
+/* Estado cuando está oculto: Eliminamos el espacio físico */
+.sidebar-tasks.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-right: none;
+    overflow: hidden; /* Evita que el contenido interno se desborde al cerrar */
+    opacity: 0;
+}
+
+/* --- CONTENEDOR DERECHO CORREGIDO --- */
+.content-view {
+    flex: 1; /* Esto obliga al contenedor a ocupar TODO el espacio restante */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Crucial para que el contenido interno (Gantt) no lo empuje */
+    background: var(--bg-gray);
+    transition: all 0.4s ease;
     height: 100vh;
-    overflow-y: auto; 
-    transition: all 0.3s ease; /* Para animar el ocultar/mostrar */
 }
 
 /* --- COMPONENTES DE INTERFAZ --- */
