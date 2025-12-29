@@ -28,22 +28,40 @@ function renderGanttTimeline(startDateStr) {
     const header = document.getElementById('gantt-header');
     if (!header) return;
     header.innerHTML = '';
+
+    // CORRECCIÓN: Agregar T00:00:00 para evitar desfase de zona horaria
     let current = new Date(startDateStr + "T00:00:00");
+    
     const days = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
     
-    for (let i = 0; i < 90; i++) {
+    // Generamos 120 días para cubrir el min-width de 4800px (120 * 40px)
+    for (let i = 0; i < 120; i++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'header-day';
+        
+        // Estilo en línea para asegurar sincronización con el ancho de las barras
+        dayDiv.style.minWidth = "40px"; 
+        dayDiv.style.width = "40px";
+
         const dayName = days[current.getDay()];
         const dayNum = current.getDate();
         const monthName = current.toLocaleDateString('es-ES', { month: 'short' });
 
+        // Identificar fines de semana visualmente (Opcional, para impacto profesional)
+        if (current.getDay() === 0 || current.getDay() === 6) {
+            dayDiv.style.background = "#f0f2f5";
+            dayDiv.style.color = "#e74c3c"; // Rojo para domingos
+        }
+
         dayDiv.innerHTML = `
-            <span class="month-label">${monthName}</span>
-            <span class="day-letter">${dayName}</span>
-            <b class="day-number">${dayNum}</b>
+            <span class="month-label" style="font-size: 8px; text-transform: uppercase;">${monthName}</span>
+            <span class="day-letter" style="color: #666;">${dayName}</span>
+            <b class="day-number" style="font-size: 13px;">${dayNum}</b>
         `;
+        
         header.appendChild(dayDiv);
+        
+        // Avanzar un día
         current.setDate(current.getDate() + 1);
     }
 }
@@ -56,14 +74,17 @@ async function renderAll() {
 
     if (!barsContainer) return;
 
-    // 1. LIMPIEZA INICIAL
+    // 1. LIMPIEZA E INICIALIZACIÓN DE SELECTORES
     barsContainer.innerHTML = '';
-    const emptyOpt = '<option value="">Sin predecesor</option>';
+    
+    // Nueva opción profesional para identificar la raíz del proyecto
+    const emptyOpt = '<option value="raiz">🚩 Actividad Inicial (Raíz)</option>';
     if (predSelectNew) predSelectNew.innerHTML = emptyOpt;
     if (predSelectDetail) predSelectDetail.innerHTML = emptyOpt;
 
     try {
         renderGanttTimeline(CALENDAR_START_DATE);
+        // Aseguramos que el inicio global no tenga desfase horario
         const globalStart = new Date(CALENDAR_START_DATE + "T00:00:00");
 
         const q = query(collection(db, "activities"), orderBy("start"));
@@ -79,11 +100,12 @@ async function renderAll() {
                 activities.push(task);
                 const p = Number(task.progress) || 0;
                 totalProg += p;
+                
                 if (p >= 100) done++; 
                 else if (p > 0) inprog++; 
                 else todo++;
                 
-                // POBLAR SELECTORES
+                // POBLAR SELECTORES CON LAS ACTIVIDADES EXISTENTES
                 const optHtml = `<option value="${task.id}">${task.name}</option>`;
                 if (predSelectNew) predSelectNew.innerHTML += optHtml;
                 if (predSelectDetail) predSelectDetail.innerHTML += optHtml;
@@ -91,10 +113,9 @@ async function renderAll() {
         });
 
         // --- INTEGRACIÓN KANBAN ---
-        // Llamamos al renderizado del tablero Kanban con la data fresca
-        await renderKanban(activities); 
+        await renderKanban(activities);
 
-        // 2. DIBUJAR BARRAS EN EL GANTT
+        // 2. DIBUJAR BARRAS EN EL GANTT CON PRECISIÓN
         activities.forEach((task, i) => {
             const taskStart = new Date(task.start + "T00:00:00");
             const diffDays = Math.floor((taskStart - globalStart) / (1000 * 60 * 60 * 24));
@@ -102,89 +123,140 @@ async function renderAll() {
             
             const bar = document.createElement('div');
             bar.className = 'gantt-bar';
+            
+            // Si la tarea es raíz y está al 100%, podríamos diferenciarla visualmente
+            if (!task.predecessorId) {
+                bar.style.borderLeft = "4px solid #f1c40f"; // Indicador visual de Raíz
+            }
+
             bar.style.left = `${diffDays * 40}px`; 
             bar.style.width = `${(Number(task.duration) || 1) * 40}px`;
             bar.style.top = `${i * 45 + 10}px`; 
+            
             bar.innerText = `${task.name} [${task.start} al ${dateEnd}] (${task.progress || 0}%)`;
             bar.onclick = () => window.openDetails(task);
             barsContainer.appendChild(bar);
         });
 
+        // 3. ACTUALIZACIÓN DE KPIs
         if (activities.length > 0) {
             const avgProg = (totalProg / activities.length).toFixed(1);
             if (kpiProg) kpiProg.innerText = `${avgProg}%`;
         }
+        
         renderStatusChart(todo, inprog, done);
         await loadResources(); 
         await updateProjectCost();
-    } catch (e) { console.error("Error crítico en renderAll:", e); }
+        
+    } catch (e) { 
+        console.error("Error crítico en renderAll de erp_msproyect:", e); 
+    }
     
     await renderResourceSummary();
 }
-
 window.openDetails = (task) => {
     currentTaskId = task.id;
-    
-    // Cargar el nombre en el nuevo input
+    document.getElementById('detail-comments').value = task.comments || "";
+    // 1. Datos Generales y Títulos
     document.getElementById('detail-name').value = task.name || "";
+    document.getElementById('detail-title').innerText = task.name || "Detalles de Tarea";
+    document.getElementById('detail-sprint').value = task.sprint || 1;
+
+    // 2. Programación de Fechas
+    document.getElementById('detail-start').value = task.start || "";
+    document.getElementById('detail-duration').value = task.duration || 1;
     
-    // (Resto de los campos que ya tenías...)
-    document.getElementById('detail-title').innerText = task.name;
-    document.getElementById('detail-start').value = task.start || "";
-    document.getElementById('detail-duration').value = task.duration || 1;
-    document.getElementById('prog-val').innerText = task.progress || 0;
-    document.getElementById('detail-progress').value = task.progress || 0;
-
-    document.getElementById('detail-start').value = task.start || "";
-    document.getElementById('detail-duration').value = task.duration || 1;
-
+    // Calcular y mostrar la fecha de fin estimada
     const dateEnd = calculateEndDate(task.start, task.duration);
     document.getElementById('detail-end').value = dateEnd;
-    
+
+    // 3. Progreso
+    const progress = task.progress || 0;
+    document.getElementById('prog-val').innerText = progress;
+    document.getElementById('detail-progress').value = progress;
+
+    // 4. LÓGICA DE PREDECESOR (Actividad Raíz)
     const detailPredSelect = document.getElementById('detail-predecessor');
     if (detailPredSelect) {
-        detailPredSelect.value = task.predecessorId || "";
+        // CORRECCIÓN: Si no tiene predecessorId, seleccionamos la opción "raiz"
+        detailPredSelect.value = task.predecessorId || "raiz";
     }
 
+    // 5. Gestión de Recursos y Costos
     document.getElementById('res-select').value = task.assignedResource || "";
     document.getElementById('res-hours').value = task.estimatedHours || 0;
+    
+    // NUEVO: Cargar el costo externo (Bienes y Servicios)
+    const externalCostInput = document.getElementById('detail-external-cost');
+    if (externalCostInput) {
+        externalCostInput.value = task.externalCosts || 0;
+    }
+
+    // 6. Activar Panel
     document.getElementById('details-panel').classList.add('active');
 };
 
 document.getElementById('btn-update-task').onclick = async () => {
     if (!currentTaskId) return;
 
-    // Capturar el nuevo nombre
+    // 1. Capturar nuevos valores de la UI (incluyendo comentarios)
     const newName = document.getElementById('detail-name').value;
     const newStart = document.getElementById('detail-start').value;
-    const newDuration = Number(document.getElementById('detail-duration').value);
-    const newPredecessor = document.getElementById('detail-predecessor').value;
+    const newProgress = Number(document.getElementById('detail-progress').value);
+    const newSprint = Number(document.getElementById('detail-sprint').value);
+    const inputDuration = Number(document.getElementById('detail-duration').value);
+    const externalCosts = Number(document.getElementById('detail-external-cost').value);
+    const newComments = document.getElementById('detail-comments').value; // Nueva Bitácora
+    
+    const selectedPredecessor = document.getElementById('detail-predecessor').value;
+    const newPredecessorId = selectedPredecessor === "raiz" ? "" : selectedPredecessor;
 
     try {
         const taskRef = doc(db, "activities", currentTaskId);
         const snap = await getDocs(collection(db, "activities"));
         const oldTask = snap.docs.find(d => d.id === currentTaskId).data();
-        const dayOffset = getDayDiff(oldTask.start, newStart);
+        
+        // 2. Determinar duración final (Lógica 100% real vs planificada)
+        let finalDuration = inputDuration;
+        if (newProgress === 100 && oldTask.progress < 100) {
+            const today = new Date().toISOString().split('T')[0];
+            finalDuration = getDayDiff(oldTask.start, today) + 1;
+            await updateDoc(taskRef, { plannedDuration: oldTask.duration });
+        } else if (newProgress < 100 && oldTask.progress === 100) {
+            finalDuration = oldTask.plannedDuration || oldTask.duration;
+        }
 
+        // --- LÓGICA DE EMPUJE (CASCADA) ---
+        // Al sumar startOffset y durationChange, cubrimos adelantos y retrasos
+        const startOffset = getDayDiff(oldTask.start, newStart);
+        const durationChange = finalDuration - oldTask.duration;
+        const totalImpactOffset = startOffset + durationChange; 
+
+        // 3. Actualizar en Firebase
         await updateDoc(taskRef, {
-            name: newName, // ACTUALIZACIÓN DEL NOMBRE
+            name: newName,
             start: newStart,
-            duration: newDuration,
-            progress: Number(document.getElementById('detail-progress').value),
+            duration: finalDuration,
+            progress: newProgress,
+            sprint: newSprint,
             assignedResource: document.getElementById('res-select').value,
             estimatedHours: Number(document.getElementById('res-hours').value),
-            predecessorId: newPredecessor
+            externalCosts: externalCosts,
+            comments: newComments, // Persistencia de la evidencia
+            predecessorId: newPredecessorId
         });
 
-        if (dayOffset !== 0) {
-            await updateDependenciesCascade(currentTaskId, dayOffset);
+        // 4. DISPARAR CASCADA
+        if (totalImpactOffset !== 0) {
+            await updateDependenciesCascade(currentTaskId, totalImpactOffset);
         }
-        
-        alert("¡Datos actualizados correctamente!");
+
+        alert("¡Cronograma de erp_msproyect actualizado con éxito!");
         window.togglePanel(false);
-        renderAll(); // Esto refrescará el texto en la barra del Gantt
+        renderAll(); 
     } catch (e) { 
-        console.error("Error al actualizar nombre:", e); 
+        console.error("Error al actualizar actividad:", e); 
+        alert("Hubo un error al actualizar los datos.");
     }
 };
 
@@ -193,16 +265,37 @@ document.getElementById('btn-save-task').onclick = async () => {
     const name = document.getElementById('task-name').value;
     const start = document.getElementById('task-start').value;
     const duration = document.getElementById('task-duration').value;
+    const sprint = document.getElementById('task-sprint').value; 
+    const priority = document.getElementById('task-priority').value; 
     const predecessorId = document.getElementById('predecessor-select').value;
 
+    // Validación de datos obligatorios
     if(!name || !start || !duration) return alert("Faltan datos");
+
     try {
         await addDoc(collection(db, "activities"), { 
-            name, start, duration: Number(duration), progress: 0, predecessorId: predecessorId || ""
+            name, 
+            start, 
+            duration: Number(duration), 
+            sprint: Number(sprint) || 1, 
+            priority: priority || "Media",
+            progress: 0, 
+            // CORRECCIÓN: Si el valor es "raiz", guardamos "" para identificarla como actividad inicial
+            predecessorId: predecessorId === "raiz" ? "" : (predecessorId || "")
         });
-        document.getElementById('task-name').value = ""; // Limpiar campo
+
+        // Limpieza de campos tras éxito
+        document.getElementById('task-name').value = ""; 
+        document.getElementById('task-duration').value = "";
+        
+        // Notificación opcional de éxito
+        console.log("Actividad guardada correctamente en erp_msproyect");
+        
         renderAll();
-    } catch (e) { alert("Error al guardar"); }
+    } catch (e) { 
+        console.error("Error al guardar en Firebase:", e);
+        alert("Error al guardar la actividad"); 
+    }
 };
 
 async function loadResources() {
@@ -221,15 +314,23 @@ async function updateProjectCost() {
     const resSnap = await getDocs(collection(db, "resources"));
     let rates = {};
     resSnap.forEach(d => rates[d.id] = d.data().rate);
-    let totalCost = 0;
+
+    let costLabor = 0;
+    let costExternal = 0;
+
     snap.forEach(d => {
         const task = d.data();
+        // Costo Mano de Obra
         if (task.assignedResource && task.estimatedHours) {
-            totalCost += (task.estimatedHours * (rates[task.assignedResource] || 0));
+            costLabor += (task.estimatedHours * (rates[task.assignedResource] || 0));
         }
+        // Costo Bienes/Servicios (Nuevo campo)
+        costExternal += Number(task.externalCosts || 0);
     });
-    const kpiCost = document.getElementById('kpi-cost');
-    if (kpiCost) kpiCost.innerText = totalCost.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+
+    const totalProject = costLabor + costExternal;
+    document.getElementById('kpi-cost').innerText = totalProject.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+    // Opcional: Mostrar desglose en consola o UI
 }
 
 document.getElementById('btn-save-resource').onclick = async () => {
@@ -242,14 +343,23 @@ document.getElementById('btn-save-resource').onclick = async () => {
 };
 
 async function updateDependenciesCascade(parentTaskId, dayOffset) {
+    // Buscamos tareas donde SU predecesor sea la tarea que acabamos de cambiar
     const q = query(collection(db, "activities"), where("predecessorId", "==", parentTaskId));
     const snap = await getDocs(q);
+    
+    // Procesamos cada sucesora encontrada
     const updates = snap.docs.map(async (d) => {
         const childData = d.data();
+        // Calculamos nueva fecha sumando el desfase recibido
         const newChildStart = addDays(childData.start, dayOffset);
+        
+        // Actualizamos la sucesora
         await updateDoc(doc(db, "activities", d.id), { start: newChildStart });
+        
+        // RECURSIVIDAD: Disparamos el cambio hacia los "nietos" de la cadena
         await updateDependenciesCascade(d.id, dayOffset);
     });
+    
     await Promise.all(updates);
 }
 
@@ -504,9 +614,50 @@ window.drop = async (ev, newProgress) => {
     
     try {
         const taskRef = doc(db, "activities", id);
-        await updateDoc(taskRef, { progress: newProgress });
-        renderAll(); // Recarga todo para sincronizar Gantt y Kanban
-    } catch (e) { console.error("Error en Kanban:", e); }
+        const snap = await getDocs(collection(db, "activities"));
+        const task = snap.docs.find(d => d.id === id).data();
+        
+        let updates = { progress: newProgress };
+
+        // --- LÓGICA DE IMPACTO EN EL CRONOGRAMA ---
+        if (newProgress === 100 && task.progress < 100) {
+            // 1. Definir fecha de finalización real (Hoy)
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 2. Calcular la nueva duración real
+            const realDuration = getDayDiff(task.start, today) + 1;
+            const finalDuration = realDuration > 0 ? realDuration : 1;
+            
+            // 3. CALCULAR EL DESFASE (Impacto para sucesoras)
+            // Es la diferencia entre la duración que tenía y la que realmente tomó
+            const durationChange = finalDuration - task.duration;
+
+            updates.duration = finalDuration;
+            updates.plannedDuration = task.duration; // Guardamos respaldo para revertir
+
+            // 4. DISPARAR CASCADA: Si terminó antes, durationChange será negativo (adelanta sucesoras)
+            // Si terminó después, será positivo (retrasa sucesoras)
+            if (durationChange !== 0) {
+                await updateDependenciesCascade(id, durationChange);
+            }
+        } 
+        else if (newProgress < 100 && task.progress === 100) {
+            // Caso MasterScrum revierte: Restauramos duración original y movemos sucesoras de vuelta
+            const restoredDuration = task.plannedDuration || task.duration;
+            const reverseOffset = restoredDuration - task.duration;
+            
+            updates.duration = restoredDuration;
+            
+            if (reverseOffset !== 0) {
+                await updateDependenciesCascade(id, reverseOffset);
+            }
+        }
+
+        await updateDoc(taskRef, updates);
+        renderAll(); // Refrescar Gantt y Kanban sincronizados
+    } catch (e) { 
+        console.error("Error en sincronización Kanban-Gantt:", e); 
+    }
 };
 
 // Modificar tu función renderAll para incluir el renderizado de tarjetas
@@ -516,41 +667,54 @@ async function renderKanban(activities) {
     const doneCont = document.getElementById('cards-done');
     if (!todoCont) return;
 
-    // 1. Obtener los nombres de los recursos primero para el mapeo
+    // 1. Obtener nombres de recursos para el mapeo visual
     const resSnap = await getDocs(collection(db, "resources"));
     let resourceNames = {};
-    resSnap.forEach(d => {
-        resourceNames[d.id] = d.data().name; // Guardamos ID -> Nombre
-    });
+    resSnap.forEach(d => { resourceNames[d.id] = d.data().name; });
 
-    todoCont.innerHTML = ''; inprogCont.innerHTML = ''; doneCont.innerHTML = '';
+    // Limpieza de columnas antes de renderizar
+    todoCont.innerHTML = ''; 
+    inprogCont.innerHTML = ''; 
+    doneCont.innerHTML = '';
 
     activities.forEach(task => {
         const card = document.createElement('div');
-        // Aplicar clase de prioridad Scrum
+        
+        // Aplicar clase de prioridad (Alta, Media, Baja) para el borde de color
         const priorityClass = `card-priority-${(task.priority || 'media').toLowerCase()}`;
         card.className = `kanban-card ${priorityClass}`;
+        
         card.draggable = true;
         card.ondragstart = (e) => window.drag(e, task.id);
         card.onclick = () => window.openDetails(task);
         
-        // 2. Obtener el nombre real o mostrar "Sin asignar"
         const nombreRecurso = resourceNames[task.assignedResource] || "Sin asignar";
         const fechaFin = calculateEndDate(task.start, task.duration);
 
+        // NUEVO: Indicador visual de comentarios (Bitácora)
+        const commentIcon = task.comments && task.comments.trim() !== "" 
+            ? '<span class="comment-indicator" title="Ver bitácora de avances">💬</span>' 
+            : '';
+
+        // Renderizado dinámico de la tarjeta
         card.innerHTML = `
             <span class="sprint-badge">Sprint ${task.sprint || 1}</span>
-            <h4>${task.name}</h4>
+            <h4>${task.name} ${commentIcon}</h4>
             <div class="card-footer">
                 <p>📅 Fin: ${fechaFin}</p>
                 <p class="resource-tag">👤 ${nombreRecurso}</p>
             </div>
         `;
 
-        // Clasificar según progreso
-        if (Number(task.progress) === 0) todoCont.appendChild(card);
-        else if (Number(task.progress) === 100) doneCont.appendChild(card);
-        else inprogCont.appendChild(card);
+        // Clasificación lógica por columnas de estado
+        const progress = Number(task.progress) || 0;
+        if (progress === 0) {
+            todoCont.appendChild(card);
+        } else if (progress === 100) {
+            doneCont.appendChild(card);
+        } else {
+            inprogCont.appendChild(card);
+        }
     });
 }
 

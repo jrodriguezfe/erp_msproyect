@@ -163,13 +163,13 @@ td { padding: 10px; border-bottom: 1px solid #eee; }
 }
 
 .header-day {
-    min-width: var(--day-width);
+    flex: 0 0 40px; /* No permite que el flexbox cambie el tamaño */
     text-align: center;
     border-right: 1px solid #eee;
-    font-size: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    box-sizing: border-box; /* Crucial para que el border no sume ancho */
 }
 
 .gantt-container {
@@ -319,11 +319,100 @@ td { padding: 10px; border-bottom: 1px solid #eee; }
 .btn-main:hover { background: var(--primary-dark); }
 
 /* --- ADAPTACIÓN MÓVIL --- */
+/* --- ADAPTACIÓN MÓVIL TOTAL --- */
 @media (max-width: 900px) {
-    .main-layout { flex-direction: column; }
-    .sidebar-tasks { width: 100%; height: auto; min-width: 0; }
-    .kpi-grid { grid-template-columns: 1fr; }
-    .details-sidebar { width: 100%; right: -100%; }
+    /* 1. Cambiamos el flujo a vertical */
+    .main-layout { 
+        flex-direction: column; 
+        overflow-x: hidden;
+    }
+
+    /* 2. Sidebar se vuelve un menú superior colapsable */
+    .sidebar-tasks { 
+        width: 100%; 
+        min-width: 100%; 
+        height: auto; 
+        max-height: 50vh; /* Para que no tape toda la pantalla */
+        border-right: none; 
+        border-bottom: 1px solid var(--border);
+        padding: 15px;
+    }
+
+    /* 3. El panel de detalles ocupa toda la pantalla en móvil */
+    .details-sidebar { 
+        width: 100% !important; 
+        max-width: 100vw !important;
+        right: -100%; 
+    }
+
+    /* 4. Toolbar responsiva (botones en filas) */
+    .toolbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .btn-tool {
+        flex: 1 1 40%; /* Dos botones por fila aproximadamente */
+        text-align: center;
+        font-size: 0.75rem;
+    }
+
+    .gantt-controls {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-around;
+        padding: 5px 0;
+    }
+
+    /* 5. KPIs en una sola columna */
+    .kpi-grid { 
+        grid-template-columns: 1fr; 
+    }
+
+    /* 6. KANBAN RESPONSIVE (Carrusel Táctil) */
+    .kanban-board {
+        display: flex;
+        overflow-x: auto; /* Scroll horizontal para ver columnas */
+        scroll-snap-type: x mandatory; /* Efecto de imán al deslizar */
+        padding: 10px;
+        gap: 15px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .kanban-column {
+        min-width: 85vw; /* Cada columna ocupa casi toda la pantalla */
+        scroll-snap-align: center;
+        max-height: 70vh;
+    }
+
+    /* 7. Tablas con scroll horizontal interno */
+    .resource-summary-area {
+        margin: 10px;
+        padding: 10px;
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 600px; /* Asegura que la tabla no se aplaste */
+    }
+}
+
+/* --- OPTIMIZACIONES DE USABILIDAD MÓVIL --- */
+.content-view {
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+}
+
+/* Evitar que el Gantt rompa el viewport */
+.gantt-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Ajuste de inputs para evitar zoom automático en iOS */
+input, select, textarea {
+    font-size: 16px !important; 
 }
 
 /* --- SIDEBAR IZQUIERDO COLAPSABLE --- */
