@@ -37,8 +37,7 @@
             <div class="brand">CTTC ERP-MS PROYECT 2026</div>
             
             <div class="admin-form">
-                <input type="text" id="task-client" placeholder="Nombre del Cliente" style="margin-bottom: 15px;">
-                <h4>Solicitud y Orden de Trabajo</h4>
+                <h4>🚀 Sprint Backlog (Scrum)</h4>
                 <input type="text" id="task-name" placeholder="User Story / Tarea">
                 
                 <select id="task-priority">
@@ -47,19 +46,6 @@
                     <option value="Servicio Rush – 2 días">Servicio Rush – 2 días</option>
                     <option value="Servicio Rush – 1 día">Servicio Rush – 1 día</option>
                 </select>
-
-                <select id="sample-count" style="margin-top: 10px;">
-                    <option value="1">Cantidad de muestras: 1</option>
-                    <option value="2">Cantidad de muestras: 2</option>
-                    <option value="3">Cantidad de muestras: 3</option>
-                    <option value="4">Cantidad de muestras: 4</option>
-                    <option value="5">Cantidad de muestras: 5</option>
-                </select>
-
-                <div id="quote-total" style="margin: 15px 0 0; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: #f8f9fa; color: #333;">
-                    <strong>Monto total de cotización:</strong>
-                    <div style="margin-top: 8px; font-size: 1.2rem; color: var(--primary);">S/. 0.00</div>
-                </div>
 
                 <input type="number" id="task-sprint" placeholder="Número de Sprint (Ej: 1)" min="1" value="1">
                 
@@ -106,8 +92,6 @@
                     <button onclick="toggleSidebar()" class="btn-tool" style="background: var(--primary); color: white;">☰ Menú</button>
                     <button onclick="toggleSection('dashboard-area')" class="btn-tool">📊 Alternar KPIs</button>
                     <button onclick="toggleSection('resource-summary-area')" class="btn-tool">👥 Alternar Recursos</button>
-                    <button onclick="deleteSelectedTask()" class="btn-tool" style="background: #c0392b; color: white;">🗑️ Eliminar Seleccionada</button>
-                    <button onclick="deleteAllTasks()" class="btn-tool" style="background: #922b21; color: white;">🗑️ Borrar Todas</button>
                     
                     <div class="gantt-controls">
                         <button onclick="scrollGantt(-400)" class="btn-nav">◀</button>

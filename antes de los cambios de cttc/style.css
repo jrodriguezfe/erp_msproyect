@@ -1,0 +1,626 @@
+/* --- VARIABLES Y CONFIGURACIÓN GLOBAL --- */
+:root {
+    --primary: #1a67a3;
+    --primary-dark: #145486;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --warning: #f1c40f;
+    --bg-gray: #f4f7f9;
+    --border: #d1d9e0;
+    --day-width: 40px; /* Sincronizado con JS */
+}
+
+body { 
+    margin: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    height: 100vh; 
+    background: var(--bg-gray); 
+    overflow: hidden; 
+}
+
+/* --- LAYOUT PRINCIPAL (RESPONSIVE) --- */
+.main-layout { 
+    display: flex; 
+    height: 100vh; 
+    width: 100vw;
+}
+
+/* --- SIDEBAR IZQUIERDO CORREGIDO --- */
+.sidebar-tasks { 
+    width: 350px;
+    min-width: 350px;
+    background: #fff; 
+    padding: 20px; 
+    border-right: 1px solid var(--border); 
+    overflow-y: auto; 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Para asegurar el orden de apilamiento */
+}
+
+/* Estado cuando está oculto: Eliminamos el espacio físico */
+.sidebar-tasks.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-right: none;
+    overflow: hidden; /* Evita que el contenido interno se desborde al cerrar */
+    opacity: 0;
+}
+
+/* --- CONTENEDOR DERECHO CORREGIDO --- */
+.content-view {
+    flex: 1; /* Esto obliga al contenedor a ocupar TODO el espacio restante */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Crucial para que el contenido interno (Gantt) no lo empuje */
+    background: var(--bg-gray);
+    transition: all 0.4s ease;
+    height: 100vh;
+}
+
+/* --- COMPONENTES DE INTERFAZ --- */
+.brand { 
+    font-size: 1.4rem; 
+    color: var(--primary); 
+    font-weight: bold; 
+    margin-bottom: 20px; 
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary); 
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.btn-tool {
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: 0.2s;
+}
+
+.btn-tool:hover { background: #e9ecef; border-color: var(--primary); }
+
+.gantt-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-nav {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hidden { display: none !important; }
+
+/* --- DASHBOARD Y KPIs --- */
+.dashboard-area { padding: 20px; background: #fff; border-bottom: 1px solid var(--border); }
+
+.kpi-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1.5fr; 
+    gap: 15px; 
+}
+
+.kpi-card { 
+    background: #fff; 
+    padding: 15px; 
+    border-radius: 8px; 
+    border: 1px solid #eee; 
+    text-align: center; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+}
+
+.kpi-val { font-size: 1.6rem; font-weight: bold; color: var(--primary); }
+
+/* --- TABLA DE RECURSOS --- */
+.resource-summary-area {
+    padding: 20px;
+    background: white;
+    margin: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid var(--border); }
+td { padding: 10px; border-bottom: 1px solid #eee; }
+
+/* --- MOTOR DEL GANTT (SCROLLABLE) --- */
+.gantt-area { 
+    flex: 1; 
+    background: white; 
+    overflow: hidden; /* El scroll lo maneja el wrapper */
+}
+
+.gantt-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+}
+
+.gantt-wrapper:active { cursor: grabbing; }
+
+.gantt-header {
+    display: flex;
+    height: 60px;
+    background: #f8f9fa;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-day {
+    flex: 0 0 40px; /* No permite que el flexbox cambie el tamaño */
+    text-align: center;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box; /* Crucial para que el border no sume ancho */
+}
+
+.gantt-container {
+    position: relative;
+    min-width: 4800px; /* 120 días * 40px */
+    height: 2000px; /* Espacio para muchas filas */
+    background-image: 
+        linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+        linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+    background-size: var(--day-width) 100%, 100% 45px;
+}
+
+.gantt-bar { 
+    position: absolute; 
+    height: 32px; 
+    background: var(--primary); 
+    border-radius: 4px; 
+    color: white; 
+    display: flex; 
+    align-items: center; 
+    padding: 0 12px; 
+    cursor: pointer; 
+    font-size: 11px; 
+    white-space: nowrap; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+}
+
+.gantt-bar:hover { transform: scale(1.02); filter: brightness(1.1); z-index: 50; }
+
+/* --- PANEL DE DETALLES (SIDEBAR DERECHO) --- */
+/* --- PANEL DE DETALLES MEJORADO --- */
+.details-sidebar { 
+    position: fixed; 
+    right: -450px; /* Oculto por defecto */
+    top: 0; 
+    width: 420px; 
+    max-width: 90vw; /* Responsive: no ocupa más del ancho de pantalla en móviles */
+    height: 100vh; 
+    background: white; 
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15); 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+    z-index: 2000; 
+    display: flex;
+    flex-direction: column; /* Para fijar el header y hacer scroll en el contenido */
+}
+
+.details-sidebar.active { 
+    right: 0; 
+}
+
+/* Cabecera Fija del Panel */
+.panel-header { 
+    background: var(--primary); 
+    color: white; 
+    padding: 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.panel-header h3 { margin: 0; font-size: 1.2rem; }
+
+/* Contenido con Scroll Independiente */
+.panel-content {
+    flex: 1;
+    overflow-y: auto; /* AQUÍ ESTÁ LA BARRA DESPLAZADORA */
+    padding: 25px;
+    background: #fff;
+}
+
+/* Estilización de las secciones internas */
+.panel-content .section {
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.panel-content h4 {
+    margin: 0 0 15px 0;
+    color: var(--primary);
+    font-size: 0.95rem;
+    border-left: 4px solid var(--primary);
+    padding-left: 10px;
+}
+
+/* Estilo de Inputs dentro del panel */
+.panel-content label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.panel-content input, 
+.panel-content select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.panel-content input:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* Acciones al fondo */
+.section-actions {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Personalización de la barra de scroll (opcional) */
+.panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+.panel-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+/* --- FORMULARIOS --- */
+.admin-form input, .admin-form select, .panel-content input, .panel-content select {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-main { 
+    background: var(--primary); color: white; border: none; padding: 12px; 
+    cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%;
+}
+
+.btn-main:hover { background: var(--primary-dark); }
+
+/* --- ADAPTACIÓN MÓVIL --- */
+/* --- ADAPTACIÓN MÓVIL TOTAL --- */
+@media (max-width: 900px) {
+    /* 1. Cambiamos el flujo a vertical */
+    .main-layout { 
+        flex-direction: column; 
+        overflow-x: hidden;
+    }
+
+    /* 2. Sidebar se vuelve un menú superior colapsable */
+    .sidebar-tasks { 
+        width: 100%; 
+        min-width: 100%; 
+        height: auto; 
+        max-height: 50vh; /* Para que no tape toda la pantalla */
+        border-right: none; 
+        border-bottom: 1px solid var(--border);
+        padding: 15px;
+    }
+
+    /* 3. El panel de detalles ocupa toda la pantalla en móvil */
+    .details-sidebar { 
+        width: 100% !important; 
+        max-width: 100vw !important;
+        right: -100%; 
+    }
+
+    /* 4. Toolbar responsiva (botones en filas) */
+    .toolbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .btn-tool {
+        flex: 1 1 40%; /* Dos botones por fila aproximadamente */
+        text-align: center;
+        font-size: 0.75rem;
+    }
+
+    .gantt-controls {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-around;
+        padding: 5px 0;
+    }
+
+    /* 5. KPIs en una sola columna */
+    .kpi-grid { 
+        grid-template-columns: 1fr; 
+    }
+
+    /* 6. KANBAN RESPONSIVE (Carrusel Táctil) */
+    .kanban-board {
+        display: flex;
+        overflow-x: auto; /* Scroll horizontal para ver columnas */
+        scroll-snap-type: x mandatory; /* Efecto de imán al deslizar */
+        padding: 10px;
+        gap: 15px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .kanban-column {
+        min-width: 85vw; /* Cada columna ocupa casi toda la pantalla */
+        scroll-snap-align: center;
+        max-height: 70vh;
+    }
+
+    /* 7. Tablas con scroll horizontal interno */
+    .resource-summary-area {
+        margin: 10px;
+        padding: 10px;
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 600px; /* Asegura que la tabla no se aplaste */
+    }
+}
+
+/* --- OPTIMIZACIONES DE USABILIDAD MÓVIL --- */
+.content-view {
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+}
+
+/* Evitar que el Gantt rompa el viewport */
+.gantt-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Ajuste de inputs para evitar zoom automático en iOS */
+input, select, textarea {
+    font-size: 16px !important; 
+}
+
+/* --- SIDEBAR IZQUIERDO COLAPSABLE --- */
+.sidebar-tasks { 
+    width: 350px;
+    min-width: 350px;
+    background: #fff; 
+    padding: 20px; 
+    border-right: 1px solid var(--border); 
+    overflow-y: auto; 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Animación suave */
+    box-sizing: border-box;
+}
+
+/* Estado cuando está oculto */
+.sidebar-tasks.collapsed {
+    margin-left: -350px; /* Se desplaza a la izquierda */
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Asegurar que el contenido crezca cuando el sidebar se oculte */
+.content-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Evita que el Gantt rompa el layout */
+    transition: all 0.4s ease;
+}
+
+/* --- ÁREA KANBAN (SCRUM) --- */
+.kanban-area { 
+    padding: 20px; 
+    flex: 1; 
+    overflow-y: auto; 
+    background: #ebedf0; 
+    min-height: 400px;
+}
+
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    align-items: flex-start;
+}
+
+.kanban-column {
+    flex: 1;
+    background: #f4f5f7;
+    border-radius: 8px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.kanban-column h3 {
+    padding: 15px;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+    text-transform: uppercase;
+    background: #fff;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid var(--primary);
+}
+
+.kanban-cards {
+    padding: 10px;
+    flex: 1;
+    min-height: 100px;
+}
+
+.kanban-column {
+    flex: 1;
+    background: #ebedf0;
+    border-radius: 8px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d9e0;
+}
+
+.kanban-column h3 {
+    padding: 15px;
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+    text-align: center;
+    background: #fff;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid var(--primary);
+}
+
+.kanban-cards {
+    padding: 10px;
+    flex: 1;
+}
+
+.kanban-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: grab;
+    border-left: 5px solid var(--primary);
+    transition: transform 0.2s;
+}
+
+.kanban-card:active { cursor: grabbing; transform: scale(1.05); }
+
+.kanban-card h4 { margin: 0 0 5px 0; font-size: 0.9rem; }
+.kanban-card p { margin: 0; font-size: 0.8rem; color: #666; }
+
+/* --- TARJETAS KANBAN INTERACTIVAS --- */
+.kanban-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    cursor: grab;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.kanban-card:active { cursor: grabbing; transform: rotate(2deg); }
+
+/* Indicadores de Prioridad Scrum */
+.card-priority-alta { border-left: 6px solid #e74c3c !important; }   /* Rojo */
+.card-priority-media { border-left: 6px solid #f1c40f !important; }  /* Amarillo */
+.card-priority-baja { border-left: 6px solid #2ecc71 !important; }   /* Verde */
+
+.sprint-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #34495e;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: bold;
+}
+
+.kanban-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    width: 80%;
+}
+
+.admin-form select {
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.admin-form h4 {
+    margin-top: 0;
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
+    padding-left: 10px;
+    font-size: 1rem;
+}
+
+.resource-tag {
+    margin-top: 8px !important;
+    color: var(--primary) !important;
+    font-weight: bold;
+    font-size: 0.8rem;
+    background: #eef5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.card-footer {
+    border-top: 1px solid #f0f0f0;
+    margin-top: 10px;
+    padding-top: 5px;
+}
+
+#excel-upload {
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#excel-upload:hover {
+    background: #eef5f9;
+    border-color: var(--primary);
+}

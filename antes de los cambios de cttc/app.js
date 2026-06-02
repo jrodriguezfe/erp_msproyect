@@ -423,36 +423,8 @@ window.togglePanel = (show) => {
 window.deleteTask = async () => {
     if (!currentTaskId || !confirm("¿Eliminar actividad?")) return;
     await deleteDoc(doc(db, "activities", currentTaskId));
-    currentTaskId = null;
     window.togglePanel(false);
     renderAll();
-};
-
-window.deleteSelectedTask = async () => {
-    if (!currentTaskId) {
-        return alert("Selecciona primero una actividad en el Gantt.");
-    }
-    if (!confirm("¿Eliminar la actividad seleccionada?")) return;
-    await deleteDoc(doc(db, "activities", currentTaskId));
-    currentTaskId = null;
-    window.togglePanel(false);
-    renderAll();
-};
-
-window.deleteAllTasks = async () => {
-    if (!confirm("¿Eliminar todas las actividades del Gantt? Esta acción no se puede deshacer.")) return;
-    try {
-        const snap = await getDocs(collection(db, "activities"));
-        const deletePromises = snap.docs.map((d) => deleteDoc(doc(db, "activities", d.id)));
-        await Promise.all(deletePromises);
-        currentTaskId = null;
-        window.togglePanel(false);
-        renderAll();
-        alert("Todas las actividades han sido eliminadas.");
-    } catch (e) {
-        console.error("Error al eliminar todas las actividades:", e);
-        alert("No se pudo eliminar todas las actividades. Revisa la consola.");
-    }
 };
 
 
