@@ -18,7 +18,9 @@ const db = getFirestore(app);
 
 let chartInstance = null;
 let currentTaskId = null;
-const CALENDAR_START_DATE = "2025-12-01"; 
+const CALENDAR_START_DATE = "2025-12-01";
+// Fecha final que queremos mostrar en el Gantt
+const CALENDAR_END_DATE = "2026-12-30";
 
 document.getElementById('detail-progress').oninput = function() {
     document.getElementById('prog-val').innerText = this.value;
@@ -34,8 +36,9 @@ function renderGanttTimeline(startDateStr) {
     
     const days = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
     
-    // Generamos 120 días para cubrir el min-width de 4800px (120 * 40px)
-    for (let i = 0; i < 120; i++) {
+    // Generamos días dinámicamente desde la fecha de inicio hasta la fecha final del calendario
+    const endDate = new Date(CALENDAR_END_DATE + "T00:00:00");
+    for (let i = 0; current <= endDate; i++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'header-day';
         
@@ -60,7 +63,6 @@ function renderGanttTimeline(startDateStr) {
         `;
         
         header.appendChild(dayDiv);
-        
         // Avanzar un día
         current.setDate(current.getDate() + 1);
     }
