@@ -155,6 +155,30 @@ async function renderAll() {
     }
     
     await renderResourceSummary();
+    // Posicionar el Gantt en la fecha actual al finalizar el render
+    scrollToCurrentDate();
+}
+
+function scrollToCurrentDate() {
+    const wrapper = document.querySelector('.gantt-wrapper');
+    if (!wrapper) return;
+
+    const today = new Date();
+    const start = new Date(CALENDAR_START_DATE + "T00:00:00");
+    const end = new Date(CALENDAR_END_DATE + "T00:00:00");
+
+    // Asegurar que la fecha objetivo esté entre start y end
+    let target = today;
+    if (today < start) target = start;
+    if (today > end) target = end;
+
+    const diffDays = Math.floor((target - start) / (1000 * 60 * 60 * 24));
+    const dayWidth = 40; // Debe coincidir con CSS
+
+    const centerOffset = Math.floor(wrapper.clientWidth / 2);
+    const scrollLeft = Math.max(0, diffDays * dayWidth - centerOffset + dayWidth);
+
+    wrapper.scrollLeft = scrollLeft;
 }
 window.openDetails = (task) => {
     currentTaskId = task.id;
@@ -596,7 +620,19 @@ slider.addEventListener('mousemove', (e) => {
 
 window.toggleSidebar = () => {
     const sidebar = document.getElementById('sidebar-left');
-    sidebar.classList.toggle('collapsed');
+    // Si estamos en la vista inicial donde solo se muestra el Gantt,
+    // el botón de menú debe mostrar/ocultar el sidebar.
+    if (document.body.classList.contains('initial-only-gantt')) {
+        const nowHidden = sidebar.classList.toggle('hidden');
+        // Forzar display para evitar problemas de cascada CSS
+        if (nowHidden) {
+            sidebar.style.display = 'none';
+        } else {
+            sidebar.style.display = '';
+        }
+    } else {
+        sidebar.classList.toggle('collapsed');
+    }
 };
 
 // --- LÓGICA KANBAN ---

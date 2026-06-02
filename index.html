@@ -5,12 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP PROYECT CTTC - Gestión de Ingeniería</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Vista inicial: solo mostrar el Gantt
+           La visibilidad de las secciones se controla mediante la clase `hidden`
+           aplicada por defecto en el HTML. Esto permite que los botones de la
+           cabecera alternen las secciones sin conflictos de `!important`. */
+
+        /* Asegurar que el área de contenido ocupe todo el ancho para el Gantt */
+        body.initial-only-gantt .content-view {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Utilidad: clase hidden para toggle de secciones */
+        .hidden { display: none !important; }
+
+        body.initial-only-gantt .gantt-area {
+            margin: 0;
+            padding: 10px 20px;
+        }
+
+        /* (Se eliminó el botón 'Mostrar Herramientas' por solicitud) */
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="main-layout">
-        <aside class="sidebar-tasks" id="sidebar-left">
+        <aside class="sidebar-tasks hidden" id="sidebar-left">
             <div class="brand">CTTC ERP-MS PROYECT 2026</div>
             
             <div class="admin-form">
@@ -76,7 +99,7 @@
                     </div>
             </div>
 
-            <section class="dashboard-area">
+            <section class="dashboard-area hidden">
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <span>Avance del Proyecto</span>
@@ -98,7 +121,7 @@
                 </div>
             </section>
 
-            <section class="resource-summary-area" style="padding: 20px; background: white; margin: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <section class="resource-summary-area hidden" style="padding: 20px; background: white; margin: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                 <h4 style="margin-bottom: 15px; color: #2c3e50;">📊 Resumen de Carga de Trabajo y Costos</h4>
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
@@ -241,5 +264,11 @@
     </div>
 
     <script type="module" src="app.js"></script>
+    <script>
+        // Activar vista inicial solo con Gantt al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('initial-only-gantt');
+        });
+    </script>
 </body>
 </html>
